@@ -93,69 +93,66 @@ public class Bybit {
         }
     }
 
-
-    public JSONObject updateTPOrderLong(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
+    public ResponseBody updateTPOrderLong(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"takeProfit\":\"%s\",\"positionIdx\": \"0\"}", symbol, takeProfit);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
 
-    public JSONObject updateTPOrderShort(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
+    public ResponseBody updateTPOrderShort(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"takeProfit\":\"%s\",\"positionIdx\": \"0\"}", symbol, takeProfit);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
-
-    public JSONObject updateSLOrder(String apiKey, String apiSecret, String symbol, String stopLoss) throws IOException {
+    public ResponseBody updateSLOrder(String apiKey, String apiSecret, String symbol, String stopLoss) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"stopLoss\":\"%s\",\"positionIdx\": \"0\"}", symbol, stopLoss);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
-
-    public JSONObject cancelOrder(String apiKey, String apiSecret, String symbol, String orderId) throws IOException {
+    public ResponseBody cancelOrder(String apiKey, String apiSecret, String symbol, String orderId) throws IOException {
         String endpoint = "/contract/v3/private/order/cancel";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"orderId\": \"%s\"}", symbol, orderId);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
 
-    public JSONObject cancelAllOrders(String apiKey, String apiSecret, String symbol) throws IOException {
+    public ResponseBody cancelAllOrders(String apiKey, String apiSecret, String symbol) throws IOException {
         String endpoint = "/contract/v3/private/order/cancel-all";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\"}", symbol);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
-    // This is 'long' method in python code (since long is keyword in java cannot use that name)
-    public JSONObject longOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
+
+    public ResponseBody longOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
         String endpoint = "/contract/v3/private/order/create";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\": \"%s\",\"side\": \"Buy\",\"positionIdx\": \"0\",\"orderType\": \"Limit\",\"qty\": \"%s\",\"price\": \"%s\",\"is_isolated\": false,\"tpTriggerBy\": \"MarkPrice\",\"slTriggerBy\": \"MarkPrice\",\"triggerBy\": \"MarkPrice\",\"triggerDirection\": 2,\"timeInForce\": \"GoodTillCancel\",\"orderLinkId\": \"%s\",\"takeProfit\": \"%s\",\"stopLoss\": \"%s\",\"reduce_only\": false,\"closeOnTrigger\": false}", symbol, qty, price, orderLinkId, take_profit, stop_loss);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
-    // this is the 'short' method in python code (since short is keyword in java cannot use that name)
-    public JSONObject shortOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
+
+    public ResponseBody shortOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
         String endpoint = "/contract/v3/private/order/create";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\": \"%s\",\"side\": \"Sell\",\"is_isolated\": false,\"positionIdx\": \"0\",\"orderType\": \"Limit\",\"qty\": \"%s\",\"price\": \"%s\",\"tpTriggerBy\": \"MarkPrice\",\"slTriggerBy\": \"MarkPrice\",\"triggerBy\": \"MarkPrice\",\"triggerDirection\": 1,\"timeInForce\": \"GoodTillCancel\",\"orderLinkId\": \"%s\",\"takeProfit\": \"%s\",\"stopLoss\": \"%s\",\"reduce_only\": false,\"closeOnTrigger\": false}", symbol, qty, price, orderLinkId, take_profit, stop_loss);
         System.out.println(params);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
     }
 
 
@@ -180,6 +177,8 @@ public class Bybit {
         String endpoint = "/contract/v3/private/account/wallet/balance";
         String method = "GET";
         String params = "coin=" + coin;
+
+
         Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Info");
 
         if (response.isSuccessful()) {
@@ -192,48 +191,25 @@ public class Bybit {
     }
 
 
-    public Response setLeverage(String apiKey, String apiSecret, String symbol, int leverage) throws IOException {
+    public JSONObject setLeverage(String apiKey, String apiSecret, String symbol, int leverage) throws IOException {
         String endpoint = "/contract/v3/private/position/set-leverage";
         String method = "POST";
         String params = "{\"symbol\":\"" + symbol + "\",\"buyLeverage\":\"" + leverage + "\",\"sellLeverage\":\"" + leverage + "\"}";
         System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
+        Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
+        String responseBody = response.body().string();
+        return new JSONObject(responseBody);
     }
 
-    public Response setOneWay(String apiKey, String apiSecret, String symbol) throws IOException {
+    public JSONObject setOneWay(String apiKey, String apiSecret, String symbol) throws IOException {
         String mode = "0";
         String endpoint = "/contract/v3/private/position/switch-mode";
         String method = "POST";
         String params = "{\"symbol\":\"" + symbol + "\",\"mode\":" + mode + "}";
         System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
-    }
-
-
-    // might need below (extras developed by developer as token of appreciation for client)
-
-    public JSONObject getOpenOrders(String apiKey, String apiSecret, String symbol) throws IOException {
-        String endpoint = "/contract/v3/private/order/list";
-        String method = "GET";
-        String params = String.format("{\"symbol\":\"%s\",\"orderStatus\":\"New,PartiallyFilled,Untriggered\"}", symbol);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Read").body().string());
-    }
-
-    // Implement the getOrderHistory method
-    public Response getOrderHistory(String apiKey, String apiSecret, String symbol, String orderStatus) throws IOException {
-        String endpoint = "/contract/v3/private/order/history";
-        String method = "GET";
-        String params = "?symbol=" + symbol + "&status=" + orderStatus;
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Info");
-    }
-
-
-    // Implement the getPositions method
-    public JSONObject getPositions(String apiKey, String apiSecret, String symbol) throws IOException {
-        String endpoint = "/contract/v3/private/position/list";
-        String method = "GET";
-        String params = String.format("{\"symbol\":\"%s\"}", symbol);
-        return new JSONObject(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Read").body().string());
+        Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
+        String responseBody = response.body().string();
+        return new JSONObject(responseBody);
     }
 
 }

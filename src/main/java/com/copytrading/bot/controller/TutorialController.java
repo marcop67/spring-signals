@@ -1,6 +1,7 @@
 package com.copytrading.bot.controller;
 
 import com.copytrading.bot.model.Bybit;
+import com.squareup.okhttp.ResponseBody;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,7 +68,7 @@ public class TutorialController {
                 amount = Math.round(amount * 1000000d) / 1000000d;
                 String mode = String.valueOf(bybit.setOneWay(apiKey, apiSecret, symbol));
                 String leverageResult = String.valueOf(bybit.setLeverage(apiKey, apiSecret, symbol, leverage));
-                JSONObject longResult = bybit.longOrder(apiKey, apiSecret, symbol, String.valueOf(amount), price, takeProfit, stopLoss);
+                ResponseBody longResult = bybit.longOrder(apiKey, apiSecret, symbol, String.valueOf(amount), price, takeProfit, stopLoss);
 
 
                 Map<String, String> longResponse = new HashMap<>();
@@ -89,7 +90,7 @@ public class TutorialController {
                 amountShort = Math.round(amountShort * 1000000d) / 1000000d;
                 String modeShort = String.valueOf(bybit.setOneWay(apiKey, apiSecret, symbol));
                 String leverageResultShort = String.valueOf(bybit.setLeverage(apiKey, apiSecret, symbol, leverage));
-                JSONObject shortResult = bybit.shortOrder(apiKey, apiSecret, symbol, String.valueOf(amountShort), price, takeProfit, stopLoss);
+                ResponseBody shortResult = bybit.shortOrder(apiKey, apiSecret, symbol, String.valueOf(amountShort), price, takeProfit, stopLoss);
 
             case "updateTPOrder.short":
                 if (apiKey == null || apiKey.isEmpty() || apiSecret == null || apiSecret.isEmpty() || symbol == null || symbol.isEmpty() || takeProfit == null || takeProfit.isEmpty()) {
@@ -98,7 +99,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                JSONObject updateTPOrderShortResult = bybit.updateTPOrderShort(apiKey, apiSecret, symbol, takeProfit);
+                ResponseBody updateTPOrderShortResult = bybit.updateTPOrderShort(apiKey, apiSecret, symbol, takeProfit);
 
                 Map<String, String> updateTPOrderShortResponse = new HashMap<>();
                 updateTPOrderShortResponse.put("result", String.valueOf(updateTPOrderShortResult));
@@ -111,7 +112,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                JSONObject updateTPOrderLongResult = bybit.updateTPOrderLong(apiKey, apiSecret, symbol, takeProfit);
+                ResponseBody updateTPOrderLongResult = bybit.updateTPOrderLong(apiKey, apiSecret, symbol, takeProfit);
 
                 Map<String, String> updateTPOrderLongResponse = new HashMap<>();
                 updateTPOrderLongResponse.put("result", String.valueOf(updateTPOrderLongResult));
@@ -124,7 +125,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                JSONObject updateSLOrderPremiumResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
+                ResponseBody updateSLOrderPremiumResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
 
                 Map<String, String> updateSLOrderPremiumResponse = new HashMap<>();
                 updateSLOrderPremiumResponse.put("result", String.valueOf(updateSLOrderPremiumResult));
@@ -137,7 +138,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                JSONObject updateSLOrderBasicResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
+                ResponseBody updateSLOrderBasicResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
 
                 Map<String, String> updateSLOrderBasicResponse = new HashMap<>();
                 updateSLOrderBasicResponse.put("result", String.valueOf(updateSLOrderBasicResult));
@@ -150,7 +151,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                JSONObject cancelAllOrdersResult = bybit.cancelAllOrders(apiKey, apiSecret, symbol);
+                ResponseBody cancelAllOrdersResult = bybit.cancelAllOrders(apiKey, apiSecret, symbol);
 
                 Map<String, String> cancelAllOrdersResponse = new HashMap<>();
                 cancelAllOrdersResponse.put("result", String.valueOf(cancelAllOrdersResult));

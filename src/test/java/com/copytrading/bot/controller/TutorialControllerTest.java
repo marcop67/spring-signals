@@ -1,48 +1,77 @@
 package com.copytrading.bot.controller;
 
-
 import com.copytrading.bot.model.Bybit;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.ResponseBody;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
+import java.util.Objects;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class TutorialControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private Bybit bybit;
 
-    @Test
-    public void testAvailableBalance() throws Exception {
-        // Set up the mock response from Bybit class
-        when(bybit.availableBalance(any(), any(), any())).thenReturn(1000.0);
+    @InjectMocks
+    private TutorialController tutorialController;
 
-        // Test the balance operation
-        mockMvc.perform(get("/tutorial")
-                        .param("operation_type", "balance")
-                        .param("api_key", "test_api_key")
-                        .param("api_secret", "test_api_secret")
-                        .param("coin", "USDT")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("balance").value(1000.0));
+    private String apiKey;
+    private String apiSecret;
+    private String coin;
+    private String symbol;
+    private Integer leverage;
+    private String amountPerc;
+    private String price;
+    private String takeProfit;
+    private String stopLoss;
+
+    @BeforeEach
+    public void setUp() throws IOException {
+        apiKey = "api_key_example";
+        apiSecret = "api_secret_example";
+        coin = "USDT";
+        symbol = "BTCUSDT";
+        leverage = 10;
+        amountPerc = "0.5";
+        price = "10000";
+        takeProfit = "11000";
+        stopLoss = "9000";
+        MockitoAnnotations.openMocks(this);
+
     }
 
-    // You can add more test methods for other operation types here
+    @Test
+    public void testUpdateSLOrderBasic() throws IOException, JSONException {
+        ResponseBody responseBody = ResponseBody.create(MediaType.parse("application/json"), new JSONObject().put("result", "success").toString());
+        when(bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss)).thenReturn(responseBody);
+
+        ResponseEntity<?> response = tutorialController.tutorialList("updateSLOrder.basic", apiKey, apiSecret, coin, symbol, leverage, amountPerc, price, takeProfit, stopLoss);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        // Add more assertions for the response content
+        JSONObject jsonResponse = new JSONObject(Objects.requireNonNull(response.getBody()).toString());
+        assertNotNull(jsonResponse.getString("result"));
+        Mockito.lenient().when(bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss)).thenReturn(responseBody);
+        // Close the response body after reading its content
+        responseBody.close();
+    }
+
 }
