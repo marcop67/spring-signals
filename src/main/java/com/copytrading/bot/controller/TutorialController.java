@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO: This code is an approximate java code for the python code in view.py. without domain knowledge its hard to perfectlty
+//TODO: This code is an approximate java code for the python code in view.py. without domain knowledge its hard to perfectly
 // match everything. hence you might need to make some minor changes and adjustments to the code
 
 @RestController
