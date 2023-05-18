@@ -60,7 +60,7 @@ public class TutorialControllerTest {
     @Test
     public void testUpdateSLOrderBasic() throws IOException, JSONException {
         ResponseBody responseBody = ResponseBody.create(MediaType.parse("application/json"), new JSONObject().put("result", "success").toString());
-        when(bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss)).thenReturn(responseBody);
+        when(bybit.updateSLOrder( symbol, stopLoss)).thenReturn(responseBody);
 
         ResponseEntity<?> response = tutorialController.tutorialList("updateSLOrder.basic", apiKey, apiSecret, coin, symbol, leverage, amountPerc, price, takeProfit, stopLoss);
 
@@ -69,7 +69,7 @@ public class TutorialControllerTest {
         // Add more assertions for the response content
         JSONObject jsonResponse = new JSONObject(Objects.requireNonNull(response.getBody()).toString());
         assertNotNull(jsonResponse.getString("result"));
-        Mockito.lenient().when(bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss)).thenReturn(responseBody);
+        Mockito.lenient().when(bybit.updateSLOrder(symbol, stopLoss)).thenReturn(responseBody);
         // Close the response body after reading its content
         responseBody.close();
     }

@@ -3,6 +3,7 @@ package com.copytrading.bot.model;
 import com.squareup.okhttp.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -12,13 +13,17 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //TODO: This code is an approximate java code for the python code in view.py. without domain knowledge its hard to perfectlty
 // match everything. hence you might need to make some minor changes and adjustments to the code
 // make sure the add the new dependencies in pom.xml with the solution I have provided the modified pom.xml code check it
 
 public class Bybit {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bybit.class);
     private OkHttpClient httpClient;
     private String recvWindow;
     private String url;
@@ -39,11 +44,12 @@ public class Bybit {
         httpClient.setWriteTimeout(30, TimeUnit.SECONDS);
     }
 
-    public Response HTTP_Request(String apiKey, String apiSecret, String endPoint, String method, String payload, String info) {
+    public Response HTTP_Request(String endPoint, String method, String payload, String info) {
         String timeStamp = String.valueOf(System.currentTimeMillis());
-        System.out.println(timeStamp);
-        System.out.println(recvWindow);
-        String signature = genSignature(apiKey, apiSecret, payload);
+
+        LOGGER.info(timeStamp);
+        LOGGER.info(recvWindow);
+        String signature = genSignature(payload);
 
         Request.Builder requestBuilder = new Request.Builder()
                 .header("X-BAPI-API-KEY", apiKey)
@@ -65,17 +71,23 @@ public class Bybit {
             long startTime = System.currentTimeMillis();
             Response response = httpClient.newCall(request).execute();
             long elapsedTime = System.currentTimeMillis() - startTime;
-            System.out.println(response.body().string());
-            System.out.println(info + " Elapsed Time: " + elapsedTime + " ms");
+            LOGGER.info(response.body().string());
+            LOGGER.info(info + " Elapsed Time: " + elapsedTime + " ms");
             return response;
         } catch (IOException e) {
             e.printStackTrace();
+            return new Response.Builder()
+                    .request(request)
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(500)
+                    .message("Failed to execute HTTP request: " + e.getMessage())
+                    .body(ResponseBody.create(MediaType.parse("application/json; charset=utf-8"), e.getMessage()))
+                    .build();
         }
-
-        return null;
     }
 
-    public String genSignature(String apiKey, String apiSecret, String payload) {
+
+    public String genSignature(String payload) {
         String paramStr = System.currentTimeMillis() + apiKey + recvWindow + payload;
         Mac hmacSha256;
         try {
@@ -93,123 +105,149 @@ public class Bybit {
         }
     }
 
-    public ResponseBody updateTPOrderLong(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
+    public ResponseBody updateTPOrderLong(String symbol, String takeProfit) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"takeProfit\":\"%s\",\"positionIdx\": \"0\"}", symbol, takeProfit);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
 
-    public ResponseBody updateTPOrderShort(String apiKey, String apiSecret, String symbol, String takeProfit) throws IOException {
+    public ResponseBody updateTPOrderShort(String symbol, String takeProfit) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"takeProfit\":\"%s\",\"positionIdx\": \"0\"}", symbol, takeProfit);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
-    public ResponseBody updateSLOrder(String apiKey, String apiSecret, String symbol, String stopLoss) throws IOException {
+    public ResponseBody updateSLOrder(String symbol, String stopLoss) throws IOException {
         String endpoint = "/contract/v3/private/position/trading-stop";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"stopLoss\":\"%s\",\"positionIdx\": \"0\"}", symbol, stopLoss);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
-    public ResponseBody cancelOrder(String apiKey, String apiSecret, String symbol, String orderId) throws IOException {
+    public ResponseBody cancelOrder(String symbol, String orderId) throws IOException {
         String endpoint = "/contract/v3/private/order/cancel";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\",\"orderId\": \"%s\"}", symbol, orderId);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
 
-    public ResponseBody cancelAllOrders(String apiKey, String apiSecret, String symbol) throws IOException {
+    public ResponseBody cancelAllOrders(String symbol) throws IOException {
         String endpoint = "/contract/v3/private/order/cancel-all";
         String method = "POST";
         String params = String.format("{\"symbol\":\"%s\"}", symbol);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
 
-    public ResponseBody longOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
+    public ResponseBody longOrder(String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
         String endpoint = "/contract/v3/private/order/create";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\": \"%s\",\"side\": \"Buy\",\"positionIdx\": \"0\",\"orderType\": \"Limit\",\"qty\": \"%s\",\"price\": \"%s\",\"is_isolated\": false,\"tpTriggerBy\": \"MarkPrice\",\"slTriggerBy\": \"MarkPrice\",\"triggerBy\": \"MarkPrice\",\"triggerDirection\": 2,\"timeInForce\": \"GoodTillCancel\",\"orderLinkId\": \"%s\",\"takeProfit\": \"%s\",\"stopLoss\": \"%s\",\"reduce_only\": false,\"closeOnTrigger\": false}", symbol, qty, price, orderLinkId, take_profit, stop_loss);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
 
-    public ResponseBody shortOrder(String apiKey, String apiSecret, String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
+    public ResponseBody shortOrder(String symbol, String qty, String price, String take_profit, String stop_loss) throws IOException {
         String endpoint = "/contract/v3/private/order/create";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\": \"%s\",\"side\": \"Sell\",\"is_isolated\": false,\"positionIdx\": \"0\",\"orderType\": \"Limit\",\"qty\": \"%s\",\"price\": \"%s\",\"tpTriggerBy\": \"MarkPrice\",\"slTriggerBy\": \"MarkPrice\",\"triggerBy\": \"MarkPrice\",\"triggerDirection\": 1,\"timeInForce\": \"GoodTillCancel\",\"orderLinkId\": \"%s\",\"takeProfit\": \"%s\",\"stopLoss\": \"%s\",\"reduce_only\": false,\"closeOnTrigger\": false}", symbol, qty, price, orderLinkId, take_profit, stop_loss);
-        System.out.println(params);
-        return HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body();
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create").body();
     }
 
 
-    public void buy(String apiKey, String apiSecret, String symbol, String qty, String price) throws IOException {
+    public void buy(String symbol, String qty, String price) throws IOException {
         String endpoint = "/spot/v3/private/order";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\":\"%s\",\"orderType\":\"Limit\",\"side\":\"Buy\",\"orderLinkId\":\"%s\",\"orderQty\":\"%s\",\"orderPrice\":\"%s\",\"timeInForce\":\"GTC\"}", symbol, orderLinkId, qty, price);
-        System.out.println(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        LOGGER.info(HTTP_Request(endpoint, method, params, "Create").body().string());
     }
 
 
-    public void sell(String apiKey, String apiSecret, String symbol, String qty, String price) throws IOException {
+    public void sell(String symbol, String qty, String price) throws IOException {
         String endpoint = "/spot/v3/private/order";
         String method = "POST";
         String orderLinkId = UUID.randomUUID().toString().replaceAll("-", "");
         String params = String.format("{\"symbol\":\"%s\",\"orderType\":\"Limit\",\"side\":\"Sell\",\"orderLinkId\":\"%s\",\"orderQty\":\"%s\",\"orderPrice\":\"%s\",\"timeInForce\":\"GTC\"}", symbol, orderLinkId, qty, price);
-        System.out.println(HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create").body().string());
+        LOGGER.info(HTTP_Request(endpoint, method, params, "Create").body().string());
     }
 
-    public double availableBalance(String apiKey, String apiSecret, String coin) throws IOException {
+    public double availableBalance(String coin) throws IOException {
         String endpoint = "/contract/v3/private/account/wallet/balance";
         String method = "GET";
-        String params = "coin=" + coin;
-
-
-        Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Info");
-
-        if (response.isSuccessful()) {
-            JSONObject jsonResponse = new JSONObject(response.body().string());
-            JSONArray list = jsonResponse.getJSONObject("result").getJSONArray("list");
-            return list.getJSONObject(0).getDouble("availableBalance");
-        } else {
-            throw new IOException("Request failed: " + response.message());
+        String params = "coin=" + URLEncoder.encode(coin, StandardCharsets.UTF_8.toString());
+        Response response = null;
+        try {
+            response = HTTP_Request(endpoint, method, params, "Info");
+            if (response.isSuccessful()) {
+                String responseBody = response.body().string();
+                JSONObject jsonResponse = new JSONObject(responseBody);
+                if (jsonResponse.has("result")) {
+                    JSONObject result = jsonResponse.getJSONObject("result");
+                    if (result.has("list")) {
+                        JSONArray list = result.getJSONArray("list");
+                        if (!list.isEmpty()) {
+                            JSONObject firstObject = list.getJSONObject(0);
+                            if (firstObject.has("availableBalance")) {
+                                return firstObject.getDouble("availableBalance");
+                            }
+                        }
+                    }
+                }
+            } else {
+                throw new IOException("Request failed: " + response.message());
+            }
+        } catch (JSONException e) {
+            throw new IOException("Invalid JSON response", e);
+        } finally {
+            if (response != null && response.body() != null) {
+                response.body().close();
+            }
         }
+        throw new IOException("Failed to get available balance");
     }
 
 
-    public JSONObject setLeverage(String apiKey, String apiSecret, String symbol, int leverage) throws IOException {
+
+
+    public Response setLeverage(String symbol, int leverage) throws IOException {
         String endpoint = "/contract/v3/private/position/set-leverage";
         String method = "POST";
         String params = "{\"symbol\":\"" + symbol + "\",\"buyLeverage\":\"" + leverage + "\",\"sellLeverage\":\"" + leverage + "\"}";
-        System.out.println(params);
-        Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
-        String responseBody = response.body().string();
-        return new JSONObject(responseBody);
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create");
     }
 
-    public JSONObject setOneWay(String apiKey, String apiSecret, String symbol) throws IOException {
+    public Response setOneWay(String symbol) throws IOException {
         String mode = "0";
         String endpoint = "/contract/v3/private/position/switch-mode";
         String method = "POST";
         String params = "{\"symbol\":\"" + symbol + "\",\"mode\":" + mode + "}";
-        System.out.println(params);
-        Response response = HTTP_Request(apiKey, apiSecret, endpoint, method, params, "Create");
-        String responseBody = response.body().string();
-        return new JSONObject(responseBody);
+        LOGGER.info(params);
+
+        return HTTP_Request(endpoint, method, params, "Create");
     }
+
 
 }

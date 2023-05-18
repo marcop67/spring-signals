@@ -47,7 +47,7 @@ public class TutorialController {
                     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                 }
 
-                double availableBalance = bybit.availableBalance(apiKey, apiSecret, coin);
+                double availableBalance = bybit.availableBalance(coin);
                 Map<String, String> response = new HashMap<>();
                 response.put("balance", String.valueOf(availableBalance));
                 return new ResponseEntity<>(response, HttpStatus.OK);
@@ -59,15 +59,15 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                double availableBalanceForLong = bybit.availableBalance(apiKey, apiSecret, "USDT");
+                double availableBalanceForLong = bybit.availableBalance("USDT");
                 double leverageFloat = Double.parseDouble(String.valueOf(leverage));
                 double amountPercFloat = Double.parseDouble(amountPerc);
                 double priceFloat = Double.parseDouble(price);
                 double amount = (availableBalanceForLong * (amountPercFloat / 100) * leverageFloat * (1 - (0.0016 * 2))) / priceFloat;
                 amount = Math.round(amount * 1000000d) / 1000000d;
-                String mode = String.valueOf(bybit.setOneWay(apiKey, apiSecret, symbol));
-                String leverageResult = String.valueOf(bybit.setLeverage(apiKey, apiSecret, symbol, leverage));
-                ResponseBody longResult = bybit.longOrder(apiKey, apiSecret, symbol, String.valueOf(amount), price, takeProfit, stopLoss);
+                String mode = String.valueOf(bybit.setOneWay(symbol));
+                String leverageResult = String.valueOf(bybit.setLeverage(apiKey, leverage));
+                ResponseBody longResult = bybit.longOrder(symbol, String.valueOf(amount), price, takeProfit, stopLoss);
 
 
                 Map<String, String> longResponse = new HashMap<>();
@@ -81,15 +81,15 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                double availableBalanceShort = bybit.availableBalance(apiKey, apiSecret, "USDT");
+                double availableBalanceShort = bybit.availableBalance("USDT");
                 double leverageFloatShort = Double.parseDouble(String.valueOf(leverage));
                 double amountPercFloatShort = Double.parseDouble(amountPerc);
                 double priceFloatShort = Double.parseDouble(price);
                 double amountShort = (availableBalanceShort * (amountPercFloatShort / 100) * leverageFloatShort * (1 - (0.0016 * 2))) / priceFloatShort;
                 amountShort = Math.round(amountShort * 1000000d) / 1000000d;
-                String modeShort = String.valueOf(bybit.setOneWay(apiKey, apiSecret, symbol));
-                String leverageResultShort = String.valueOf(bybit.setLeverage(apiKey, apiSecret, symbol, leverage));
-                ResponseBody shortResult = bybit.shortOrder(apiKey, apiSecret, symbol, String.valueOf(amountShort), price, takeProfit, stopLoss);
+                String modeShort = String.valueOf(bybit.setOneWay(symbol));
+                String leverageResultShort = String.valueOf(bybit.setLeverage(symbol, leverage));
+                ResponseBody shortResult = bybit.shortOrder(symbol, String.valueOf(amountShort), price, takeProfit, stopLoss);
 
             case "updateTPOrder.short":
                 if (apiKey == null || apiKey.isEmpty() || apiSecret == null || apiSecret.isEmpty() || symbol == null || symbol.isEmpty() || takeProfit == null || takeProfit.isEmpty()) {
@@ -98,7 +98,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                ResponseBody updateTPOrderShortResult = bybit.updateTPOrderShort(apiKey, apiSecret, symbol, takeProfit);
+                ResponseBody updateTPOrderShortResult = bybit.updateTPOrderShort(symbol, takeProfit);
 
                 Map<String, String> updateTPOrderShortResponse = new HashMap<>();
                 updateTPOrderShortResponse.put("result", String.valueOf(updateTPOrderShortResult));
@@ -111,7 +111,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                ResponseBody updateTPOrderLongResult = bybit.updateTPOrderLong(apiKey, apiSecret, symbol, takeProfit);
+                ResponseBody updateTPOrderLongResult = bybit.updateTPOrderLong(symbol, takeProfit);
 
                 Map<String, String> updateTPOrderLongResponse = new HashMap<>();
                 updateTPOrderLongResponse.put("result", String.valueOf(updateTPOrderLongResult));
@@ -124,7 +124,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                ResponseBody updateSLOrderPremiumResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
+                ResponseBody updateSLOrderPremiumResult = bybit.updateSLOrder(symbol, stopLoss);
 
                 Map<String, String> updateSLOrderPremiumResponse = new HashMap<>();
                 updateSLOrderPremiumResponse.put("result", String.valueOf(updateSLOrderPremiumResult));
@@ -137,7 +137,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                ResponseBody updateSLOrderBasicResult = bybit.updateSLOrder(apiKey, apiSecret, symbol, stopLoss);
+                ResponseBody updateSLOrderBasicResult = bybit.updateSLOrder(symbol, stopLoss);
 
                 Map<String, String> updateSLOrderBasicResponse = new HashMap<>();
                 updateSLOrderBasicResponse.put("result", String.valueOf(updateSLOrderBasicResult));
@@ -150,7 +150,7 @@ public class TutorialController {
                     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
                 }
 
-                ResponseBody cancelAllOrdersResult = bybit.cancelAllOrders(apiKey, apiSecret, symbol);
+                ResponseBody cancelAllOrdersResult = bybit.cancelAllOrders(symbol);
 
                 Map<String, String> cancelAllOrdersResponse = new HashMap<>();
                 cancelAllOrdersResponse.put("result", String.valueOf(cancelAllOrdersResult));
